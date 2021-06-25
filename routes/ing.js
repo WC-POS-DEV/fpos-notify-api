@@ -46,6 +46,7 @@ async function routes(fastify, opts) {
       Object.keys(req.body).forEach((key) => {
         if (group[key] !== undefined) group[key] = req.body[key];
       });
+      await group.save();
       reply
         .code(200)
         .headers(...JSON_HEADER)
@@ -128,7 +129,7 @@ async function routes(fastify, opts) {
       reply
         .code(404)
         .headers(...JSON_HEADER)
-        .send({ error: "Storage locations not found" });
+        .send({ error: "Storage location not found" });
     }
   });
 
@@ -138,6 +139,7 @@ async function routes(fastify, opts) {
       Object.keys(req.body).forEach((key) => {
         if (storage[key] !== undefined) storage[key] = req.body[key];
       });
+      await storage.save();
       reply
         .code(200)
         .headers(...JSON_HEADER)
@@ -179,7 +181,7 @@ async function routes(fastify, opts) {
       reply
         .code(404)
         .headers(...JSON_HEADER)
-        .send({ error: "Storage locations not found" });
+        .send({ error: "Storage location not found" });
     }
   });
 
