@@ -60,7 +60,7 @@ const fposConfig = {
 const start = async () => {
   try {
     await app
-      .register(fastifyCors, { origin: false})
+      .register(fastifyCors, { origin: true })
       .register(require("./plugins/appConfig"), { ...config, FPOS: undefined })
       .register(fsequelize, sequelizeConfig)
       .register(fsequelize, fposConfig)
