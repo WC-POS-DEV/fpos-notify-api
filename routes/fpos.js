@@ -119,12 +119,14 @@ async function routes(fastify, opts) {
   fastify.get("/sales/recent/", async (req, reply) => {
     const sqlString = fs.readFileSync("./sql/RecentSales.sql", "utf-8");
     let queryDate = getRecentDate(fastify.config.RECENT_SALES_EXPIRY);
-    const results = (await fastify.fpos.query(sqlString, {
-      type: QueryTypes.SELECT,
-      replacements: {
-        endDate: sqlFormatDate(queryDate),
-      },
-    })).map(result => camelKeys(result));
+    const results = (
+      await fastify.fpos.query(sqlString, {
+        type: QueryTypes.SELECT,
+        replacements: {
+          endDate: sqlFormatDate(queryDate),
+        },
+      })
+    ).map((result) => camelKeys(result));
     reply
       .code(200)
       .header(...JSON_HEADER)
@@ -163,32 +165,33 @@ async function routes(fastify, opts) {
   fastify.get("/board/", async (req, reply) => {
     const sqlString = fs.readFileSync("./sql/RecentSales.sql", "utf-8");
     let queryDate = getRecentDate(fastify.config.RECENT_SALES_EXPIRY);
-    let sales = (await fastify.fpos.query(sqlString, {
-      type: QueryTypes.SELECT,
-      replacements: {
-        endDate: sqlFormatDate(queryDate),
-      },
-    })).map(result => camelKeys(result));
+    let sales = (
+      await fastify.fpos.query(sqlString, {
+        type: QueryTypes.SELECT,
+        replacements: {
+          endDate: sqlFormatDate(queryDate),
+        },
+      })
+    ).map((result) => camelKeys(result));
     let notifications = await fastify.models.Notification.findAll({
       where: {
-        [Op.and]: [
-          {
-            createdAt: {
-              [Op.gt]: getRecentDate(fastify.config.NOTIFICATIONS_EXPIRY)
-            }
-          },
-          { type: "BOARD" }
-        ]
+        createdAt: {
+          [Op.gt]: getRecentDate(fastify.config.NOTIFICATIONS_EXPIRY),
+        },
       },
-      order: [["checkNumber", "DESC"]]
-    }
-    )
-    let saleIds = notifications.map(notif => notif.dataValues.saleID)
-    reply.code(200).header(...JSON_HEADER).send(JSON.stringify({
-      inProgress: sales.filter(sale => !saleIds.includes(sale.saleId)),
-      notifications
-    }))
-  })
+      order: [["checkNumber", "DESC"]],
+    });
+    let saleIds = notifications.map((notif) => notif.dataValues.saleID);
+    reply
+      .code(200)
+      .header(...JSON_HEADER)
+      .send(
+        JSON.stringify({
+          inProgress: sales.filter((sale) => !saleIds.includes(sale.saleId)),
+          notifications,
+        })
+      );
+  });
 
   // Post Views - Notifications
   fastify.post("/notify/", async (req, reply) => {
@@ -198,32 +201,44 @@ async function routes(fastify, opts) {
       replacements: { saleID: req.body.saleId },
     });
     if (results.length) {
-      let sale = camelKeys(results[0])
+      let sale = camelKeys(results[0]);
       let notif;
       let notifType = req.body.phoneNumber ? "PHONE" : "BOARD";
-      let phone = req.body.phoneNumber ? req.body.phoneNumber.replace(/[^\d.-]/g, '') : null
-      let lookupNotif = await fastify.models.Notification.findAll({where: {
-        [Op.and]: [
-          {
-            saleId: req.body.saleId,
-            type: notifType,
-            phoneNumber: phone
-          }
-        ]
-      }, limit: 1})
+      let phone = req.body.phoneNumber
+        ? req.body.phoneNumber.replace(/[^\d.-]/g, "")
+        : null;
+      let lookupNotif = await fastify.models.Notification.findAll({
+        where: {
+          [Op.and]: [
+            {
+              saleId: req.body.saleId,
+              type: notifType,
+              phoneNumber: phone,
+            },
+          ],
+        },
+        limit: 1,
+      });
       if (lookupNotif.length) {
-        notif = {...lookupNotif[0].dataValues, new: false}
+        notif = { ...lookupNotif[0].dataValues, new: false };
       } else {
-        if (phone) fastify.twilio.sendMessage(phone, fastify.config.MESSAGING.MESSAGES.READY.replace('{{STORE_NAME}}', fastify.config.STORE_NAME))
+        if (phone)
+          fastify.twilio.sendMessage(
+            phone,
+            fastify.config.MESSAGING.MESSAGES.READY.replace(
+              "{{STORE_NAME}}",
+              fastify.config.STORE_NAME
+            )
+          );
         notif = await fastify.models.Notification.create({
           saleID: sale.saleId,
           checkNumber: sale.checkNumber,
           ticketNumber: sale.ticketNumber,
           checkDescription: sale.checkDescription,
           type: notifType,
-          phoneNumber: phone
-        })
-        notif = { ...notif.dataValues, new: true}
+          phoneNumber: phone,
+        });
+        notif = { ...notif.dataValues, new: true };
       }
       reply
         .code(200)
