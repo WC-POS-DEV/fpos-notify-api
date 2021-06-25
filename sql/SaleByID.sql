@@ -9,6 +9,11 @@ SELECT
     LastName,
     FirstName,
     Phone,
+	webLastName,
+	webFirstName,
+	webPhone,
+	webComment,
+	mozartOrderNumber,
     dbo.OrderType.Description as OrderType
 FROM
     dbo.Sale
