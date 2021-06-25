@@ -1,0 +1,1 @@
+cd .. && node service.js -uninstall
