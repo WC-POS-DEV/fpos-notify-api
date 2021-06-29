@@ -8,7 +8,7 @@ async function configureDBModels(fastify, opts, done) {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false
+      allowNull: false,
     },
     saleID: { type: DataTypes.UUID, allowNull: false },
     checkNumber: { type: DataTypes.INTEGER, allowNull: false },
@@ -36,7 +36,7 @@ async function configureDBModels(fastify, opts, done) {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false
+      allowNull: false,
     },
     name: { type: DataTypes.STRING, allowNull: false },
   });
@@ -46,7 +46,7 @@ async function configureDBModels(fastify, opts, done) {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false
+      allowNull: false,
     },
     name: { type: DataTypes.STRING, allowNull: false },
   });
@@ -56,7 +56,7 @@ async function configureDBModels(fastify, opts, done) {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false
+      allowNull: false,
     },
     name: { type: DataTypes.STRING, allowNull: false },
     expirationAmount: { type: DataTypes.INTEGER, validate: { min: 1 } },
@@ -85,13 +85,65 @@ async function configureDBModels(fastify, opts, done) {
     },
   });
 
+  const CustomerWait = fastify.db.define("CustomerWait", {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
+    },
+    phoneNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+      validate: {
+        is: /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/,
+      },
+    },
+    customerName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    partySize: {
+      type: DataTypes.NUMBER,
+      allowNull: false,
+      defaultValue: 2,
+    },
+    createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "WAITING",
+      validate: {
+        isIn: [["WAITING", "MESSAGED", "SEATED"]],
+      },
+    },
+    quoteTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    messageTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    seatedTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waitTime: {
+      type: DataTypes.NUMBER,
+      defaultValue: 0,
+    },
+  });
+
   fastify.decorate("models", {
     Notification,
     Ingredient,
     IngGroup,
     StorageLocation,
+    CustomerWait,
   });
-  await fastify.db.sync()
+  await fastify.db.sync();
   done();
 }
 

@@ -225,7 +225,7 @@ async function routes(fastify, opts) {
         if (phone)
           fastify.twilio.sendMessage(
             phone,
-            fastify.config.MESSAGING.MESSAGES.READY.replace(
+            fastify.config.MESSAGING.MESSAGES.ORDER_READY.replace(
               "{{STORE_NAME}}",
               fastify.config.STORE_NAME
             )
@@ -254,6 +254,20 @@ async function routes(fastify, opts) {
           })
         );
     }
+  });
+
+  // ### Table Views
+  fastify.get("/tables/", async (req, reply) => {
+    const sqlString = fs.readFileSync("./sql/TableSales.sql", "utf-8");
+    let tables = (
+      await fastify.fpos.query(sqlString, {
+        type: QueryTypes.SELECT,
+      })
+    ).map((result) => camelKeys(result));
+    reply
+      .code(200)
+      .header(...JSON_HEADER)
+      .send(JSON.stringify(tables));
   });
 }
 

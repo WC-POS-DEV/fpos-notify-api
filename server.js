@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const app = require("fastify")({ logger: true });
-const fastifyCors = require("fastify-cors")
+const fastifyCors = require("fastify-cors");
 const chalk = require("chalk");
 const fsequelize = require("sequelize-fastify");
 const ora = require("ora");
@@ -67,7 +67,8 @@ const start = async () => {
       .register(require("./plugins/dbModels"))
       .register(require("./plugins/twilio"))
       .register(require("./routes/fpos"), { prefix: "/fpos" })
-      .register(require("./routes/ing"), { prefix: "ing"})
+      .register(require("./routes/ing"), { prefix: "/ing" })
+      .register(require("./routes/waitlist"), { prefix: "/waitlist" })
       .listen(3000, "0.0.0.0");
 
     await app.ready(async () => {

@@ -77,6 +77,7 @@ async function routes(fastify, opts) {
     if (group) {
       let ingredients = await fastify.models.Ingredient.findAll({
         where: { group: req.params.id },
+        order: [["name"]],
       });
       reply
         .code(200)
@@ -172,6 +173,7 @@ async function routes(fastify, opts) {
     if (storageLocation) {
       let ingredients = await fastify.models.Ingredient.findAll({
         where: { storageLocation: req.params.id },
+        order: [["name"]],
       });
       reply
         .code(200)
@@ -188,7 +190,7 @@ async function routes(fastify, opts) {
   // Ingredient Views
   fastify.get("/items/", async (req, reply) => {
     let ingredients = await fastify.models.Ingredient.findAll({
-      order: [["group"]],
+      order: [["group"], ["name"]],
     });
     reply
       .code(200)
@@ -218,6 +220,7 @@ async function routes(fastify, opts) {
     for (group of groups) {
       group.ingredients = await fastify.models.Ingredient.findAll({
         where: { group: group.id },
+        order: [["name"]],
       });
     }
     reply
